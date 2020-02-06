@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Subcommand to start the postgres server
+pgf-start() {
+  docker run --name pg-fiddle --rm -it -v "$PWD:/pg-fiddle" postgres:11.5
+}
+
+# Subcommand to reset the schema
+pgf-schema() {
+  docker exec -i pg-fiddle psql -U postgres < schema.sql
+}
+
+# Subcommand to run one or more queries and show results
+pgf-query() {
+  for f in "$@"; do
+    echo -e "\e[4;1m$f\e[0m\n"
+
+    docker exec -i pg-fiddle psql -U postgres -d pg_fiddle < "$f" | sed -e 's/^/  /'
+  done
+}
+
+# Take the first arg as the subcommand to run
+subcommand=$1
+shift
+
+# Pass the rest of the args to the subcommand
+pgf-$subcommand "$@"
